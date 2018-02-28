@@ -48,7 +48,7 @@ def ub_initial(f):
 def reg_user(uid,name,pwd,team):
 	f=open_user()
 	data=f["data"]
-	if name in data["name"]:
+	if (uid in data['uid'])and(name in data["name"]):
 		return None
 	else:
 		newdata=np.array([(uid,name,pwd,team)],dtype=user_field)

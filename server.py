@@ -4,8 +4,10 @@ References:
 """
 import logging
 import sys
+sys.path.append("C:\Users\adamo\School\ECE 422\ECE422SecurityProject")
 import SocketServer
-
+import storage_h5 as sh
+import numpy as np
 logging.basicConfig(level=logging.DEBUG,
                     format='%(name)s: %(message)s',
                     )
@@ -24,17 +26,24 @@ class EchoRequestHandler(SocketServer.BaseRequestHandler):
         return SocketServer.BaseRequestHandler.setup(self)
 
     #This function handles all requests from the user.
-    #A lot of work will need to be done here in the future.
+    #For each request from the user, the first .
     def handle(self):
-        self.logger.debug('handle')
+        exit = False
+        while(exit == False):
+            self.logger.debug('handle')
 
-        # Only allows input to be 1Kb long.  Can be made longer later
-        data = self.request.recv(1024)
+            # Only allows input to be 1Kb long.  Can be made longer later
+            data = self.request.recv(1024)
 
-        self.logger.debug('recv()->"%s"', data)
+            self.logger.debug('recv()->"%s"', data)
+            if(data == ""):
+                exit = True
+            elif data == "createuser":
+                createUser(self);
 
-        #self.request.send(data)
-        self.request.sendall("Thank you, we have received your '{}' message.".format(data))
+
+            #self.request.send(data)
+            #self.request.sendall("Thank you, we have received your '{}' message.".format(data))
 
         return
 
@@ -88,6 +97,35 @@ class EchoServer(SocketServer.TCPServer):
         return SocketServer.TCPServer.close_request(self, request_address)
 
 
+def createUser(handler):
+    print("Now in the createUser function")
+    userName = handler.request.recv(1024)
+    handler.logger.debug('recv()->"%s"', userName)
+    sendAck(handler)
+    password = handler.request.recv(1024)
+    handler.logger.debug('recv()->"%s"', password)
+    sendAck(handler)
+    groupName = handler.request.recv(1024)
+    handler.logger.debug('recv()->"%s"', groupName)
+    sendAck(handler)
+
+    #Create random userID
+    f=sh.open_user()
+    data=f["data"]
+    uid = np.max(data['uid'])+1
+    handler.logger.debug('userID->"%s"', uid)
+
+    #Create User
+    result = sh.reg_user(uid, userName, password, groupName)
+    handler.logger.debug('result->"%s"', result)
+    if(result == "sucess"):
+        handler.request.send("newUserCreated")
+    return
+
+
+def sendAck(handler):
+    handler.request.send("ack")
+
 if __name__ == '__main__':
     import socket
     import threading
@@ -99,7 +137,7 @@ if __name__ == '__main__':
     t = threading.Thread(target=server.serve_forever)
     t.setDaemon(True)  # don't hang on exit
     t.start()
-    input('Press ENTER to shut down server\n')
+    raw_input('Press ENTER to shut down server\n')
     server.socket.close()
 """
     logger = logging.getLogger('client')
