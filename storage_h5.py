@@ -3,14 +3,20 @@ import numpy as np
 file_name='./serverhdf5/test.hdf5'
 private_file="./serverhdf5/private/private.hdf5"
 public_file="./serverhdf5/public/private.hdf5"
+userdata_file="./serverhdf5/user/data.hdf5"
 dt = h5py.special_dtype(vlen=unicode) 
 field_type=[('uid','<i4'),('fid','<i4'),('context',dt)]
+user_field=[('uid','<i4'),('name',dt),('pwd',dt),('group',dt)]
 def open_private():
 	f=h5py.File(private_file,'a')
 	return f
 def open_public():
 	f=h5py.File(public_file,'a')
 	return f
+def open_user():
+	f=h5py.File(userdata_file,'a')
+	return f
+
 def write_h5(f,uid,fid,des,context):
 	if des in f:
 		grp=f[des]
@@ -36,7 +42,33 @@ def initial(f):
 	initialdata=np.array([(-1,-1,"the initial of hdf5")],dtype=field_type)
 	grp=f.create_group("test")
 	grp.create_dataset("data",data=initialdata,maxshape=(None,))
-	
+def ub_initial(f):
+	initialdata=np.array([(-1,"-1","-1","the initial of hdf5")],dtype=user_field)
+	f.create_dataset("data",data=initialdata,maxshape=(None,))
+def reg_user(uid,name,pwd,team):
+	f=open_user()
+	data=f["data"]
+	if name in data["name"]:
+		return None
+	else:
+		newdata=np.array([(uid,name,pwd,team)],dtype=user_field)
+		data=np.append(data,newdata,axis=0)
+		f["data"].resize(data.shape)
+		f["data"][...]=data
+		f.close()
+		return "sucess"
+def log_in(user,pwd):
+	f=open_user()
+	data=f["data"]
+	if user in data["name"]:
+		index=np.where(data['name']==user)[0][0]
+		cons=data[index]
+		if cons['pwd'] ==pwd:
+			return cons['uid'],cons['name'],cons['group']
+		else:
+			return None,None,None
+	else:
+		return None,None,None
 def read_h5(f,des):
 	if des in f:
 		grp=f[des]
@@ -52,18 +84,11 @@ def create_directory(f,des,loc=None):
 		sub=f.create_group(des)
 	sub.create_dataset("data",data=initialdata,maxshape=(None,))
 if __name__ == '__main__':
-	f=open_private()
-	test=read_h5(f,"test")
-	print("test:\n")
-	print(test)
-	print("\n")
-	test=read_h5(f,"test1")
-	print("test1:\n")
-	print(test)
-	print("\n")
-	test=read_h5(f,"uid/test/test1")
-	print("test/test1:\n")
-	print(test)
-	print("\n")
+	f=open_user()
+	ub_initial(f)
+	print reg_user(-2,"test","pwd","testgrp")
+	uid,name,team=log_in("test","pwd")
+	print uid,name,team
+	
 	
 			
