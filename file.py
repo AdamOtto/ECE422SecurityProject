@@ -34,17 +34,20 @@ def dcry_fdata(f,team):
 	h=SHA256.new()
 	h.update(team)
 	c=ARC2.new(h.hexdigest(),ARC2.MODE_ECB,"")
-	return c.encrypt(f)
+	return c.decrypt(f).strip()
 def loads(js):
-	d=json.loads(js.decode('b'))
-	fname=d['fname']+'1'
+	d=js
+	fname="ctest.txt"
 	team=d['team']
 	data=dcry_fdata(d['data'],team)
+	print data
 	f=open(fname,'w')
 	f.write(data)
 	
 if __name__ == '__main__':
 	
-	
+	test=file_json("test","123","test1.txt")
+	print test
+	loads(test)
 	
 		
