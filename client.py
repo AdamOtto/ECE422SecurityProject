@@ -6,20 +6,49 @@ import logging
 import sys
 import socket
 import os
+import atexit
 
 #Define how to connect to server.
 ip = '127.0.0.1'
 port = 3000
+#Global Variables
+SendReceiveSize = 4096
+userId = ""
+userName = ""
+userGroup = ""
 
 def cls():
     os.system('cls' if os.name=='nt' else 'clear')
 
 def login(sock):
+    sock.send("login")
+    waitForAck(sock)
 
-    return
+    user = raw_input("\nPlease type in your username: ")
+    sendData(sock, user)
+    passWord = raw_input("\nPlease type in your password: ")
+    sendData(sock, passWord)
+
+    result = receiveData(sock)
+
+    if (result == "success"):
+        print("Login successful\n")
+
+        global userId
+        userId = receiveData(sock)
+        global userName
+        userName = receiveData(sock)
+        global userGroup
+        userGroup = receiveData(sock)
+        return True
+    else:
+        print("Login unsuccessful.  Make sure you typed in your username and password correctly\n")
+        return False
 
 def createUser(sock):
     sock.send("createuser")
+    waitForAck(sock)
+
     user = raw_input("\nPlease type in your username: ")
     passWord = raw_input("\nPlease type in your password: ")
     group = raw_input("\nPlease type in your group name: ")
@@ -31,6 +60,12 @@ def createUser(sock):
     result = receiveData(sock)
 
     if (result == "newUserCreated"):
+        global userId
+        userId = receiveData(sock)
+        global userName
+        userName = user
+        global userGroup
+        userGroup = group
         return True
     return False
 
@@ -44,26 +79,41 @@ def uploadPublicFile(sock) :
     return
 
 def sendData(sock, message) :
-    sock.send(message)
+    if (isinstance(message, int) or isinstance(message, float)):
+        temp = str(message)
+        sock.send(temp)
+    else:
+        sock.send(message)
     waitForAck(sock)
     return
 
 def receiveData(sock):
     print('waiting for response from server...')
-    response = sock.recv(1024)
+    response = sock.recv(SendReceiveSize)
+    sendAck(sock)
     print("response from server: {}".format(response))
     return response
 
+def sendAck(sock):
+    sock.send("ack")
+
 def waitForAck(sock):
-    response = s.recv(1024)
+    response = sock.recv(SendReceiveSize)
     if response == "ack":
+        #print("Received ack\n")
         return
     else:
         print("Error in communication with the server.\nReceived: {}".format(response))
     return
 
+def exit_handler():
+    print('closing socket')
+    s.close()
+    print('done')
+
 if __name__ == '__main__':
     print('Server on {}:{}'.format(ip,port))
+    atexit.register(exit_handler)
 
     # Connect to the server
     print('creating socket')
@@ -83,7 +133,7 @@ if __name__ == '__main__':
         print("Welcome to the secure file system (SFS)\nPlease select an option\n1: Login\n2: Create new user\n")
         sel = raw_input();
         if sel == '1':
-            login(s)
+            close = login(s)
         elif sel == '2':
             close = createUser(s)
         else:
@@ -94,7 +144,7 @@ if __name__ == '__main__':
 
     close = False
     while(close == False):
-        print("Welcome to the secure file system (SFS)\nPlease select an option:\n1: Create/Open File\n2: Change Directory\n5: Exit")
+        print("Welcome to the secure file system (SFS)\nUserID: {}, Username: {}, Group: {}\nPlease select an option:\n1: Create/Open File\n2: List all files\n5: Exit".format(userId, userName, userGroup))
         sel = raw_input();
 
         if sel == '1':
@@ -119,7 +169,7 @@ if __name__ == '__main__':
     # Receive a response
     print('waiting for response...')
     #response = s.recv(len_sent)
-    response = s.recv(1024)
+    response = s.recv(SendReceiveSize)
     print("response from server: {}".format(response))
     '''
     # Clean up

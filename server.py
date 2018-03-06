@@ -8,6 +8,10 @@ sys.path.append("C:\Users\adamo\School\ECE 422\ECE422SecurityProject")
 import SocketServer
 import storage_h5 as sh
 import numpy as np
+import
+
+SendReceiveSize = 4096
+
 logging.basicConfig(level=logging.DEBUG,
                     format='%(name)s: %(message)s',
                     )
@@ -33,13 +37,15 @@ class EchoRequestHandler(SocketServer.BaseRequestHandler):
             self.logger.debug('handle')
 
             # Only allows input to be 1Kb long.  Can be made longer later
-            data = self.request.recv(1024)
-
+            data = self.request.recv(SendReceiveSize)
+            sendAck(self)
             self.logger.debug('recv()->"%s"', data)
             if(data == ""):
                 exit = True
             elif data == "createuser":
-                createUser(self);
+                createUser(self)
+            elif data == "login":
+                login(self)
 
 
             #self.request.send(data)
@@ -99,17 +105,15 @@ class EchoServer(SocketServer.TCPServer):
 
 def createUser(handler):
     print("Now in the createUser function")
-    userName = handler.request.recv(1024)
-    handler.logger.debug('recv()->"%s"', userName)
-    sendAck(handler)
-    password = handler.request.recv(1024)
-    handler.logger.debug('recv()->"%s"', password)
-    sendAck(handler)
-    groupName = handler.request.recv(1024)
-    handler.logger.debug('recv()->"%s"', groupName)
-    sendAck(handler)
 
-    #Create random userID
+    userName = receiveData(handler)
+    handler.logger.debug('userName:recv()->"%s"', userName)
+    password = receiveData(handler)
+    handler.logger.debug('password:recv()->"%s"', password)
+    groupName = receiveData(handler)
+    handler.logger.debug('groupName:recv()->"%s"', groupName)
+
+    #Create userID
     f=sh.open_user()
     data=f["data"]
     uid = np.max(data['uid'])+1
@@ -118,13 +122,69 @@ def createUser(handler):
     #Create User
     result = sh.reg_user(uid, userName, password, groupName)
     handler.logger.debug('result->"%s"', result)
+
     if(result == "sucess"):
-        handler.request.send("newUserCreated")
+        sendData(handler,"newUserCreated")
+        sendData(handler,uid)
+    return
+
+def login(handler):
+    print("Now in the login function")
+
+    userName = receiveData(handler)
+    handler.logger.debug('userName:recv()->"%s"', userName)
+    password = receiveData(handler)
+    handler.logger.debug('password:recv()->"%s"', password)
+
+    print("username and password received\n")
+
+    #Check if user exists
+    result = sh.log_in(userName,password)
+
+    print("result:{}".format(result))
+
+    if (result != (None, None, None)):
+        print("Login Successful\n")
+        sendData(handler,"success")
+
+        sendData(handler, result[0])
+        sendData(handler, result[1])
+        sendData(handler, result[2])
+    else:
+        print("Login failed\n")
+        sendData(handler,"Fail")
     return
 
 
 def sendAck(handler):
     handler.request.send("ack")
+
+def waitForAck(handler):
+    response = handler.request.recv(SendReceiveSize)
+    if response == "ack":
+        print("received ack\n")
+        return
+    else:
+        print("Error in communication with the client.\nReceived: {}".format(response))
+    return
+
+def sendData(handler, message) :
+    type(message)
+    if( isinstance(message, int) or isinstance(message, float) ):
+        temp = str(message)
+        handler.request.send(temp)
+    else:
+        handler.request.send(message)
+    waitForAck(handler)
+    return
+
+def receiveData(handler):
+    print('waiting for response from client...')
+    response = handler.request.recv(SendReceiveSize)
+    sendAck(handler)
+    print("response from client: {}".format(response))
+    return response
+
 
 if __name__ == '__main__':
     import socket
