@@ -45,6 +45,7 @@ def initial(f):
 def ub_initial(f):
 	initialdata=np.array([(-1,"-1","-1","the initial of hdf5")],dtype=user_field)
 	f.create_dataset("data",data=initialdata,maxshape=(None,))
+	f.close()
 def reg_user(uid,name,pwd,team):
 	f=open_user()
 	data=f["data"]
