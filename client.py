@@ -7,7 +7,6 @@ import sys
 import socket
 import os
 import atexit
-
 #Define how to connect to server.
 ip = '127.0.0.1'
 port = 3000
