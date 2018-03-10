@@ -76,6 +76,18 @@ def read_h5(f,des):
 	else:
 		return None
 	return np.array(grp["data"])
+def list_h5(f,des):
+	a=[]
+	if des in f:
+		grp=f[des]
+	else:
+		return None
+	for v in grp.values():
+		if "/"+des+"/"+'data'== v.name:
+		else:
+			a.append(v.name.replace(des,""))
+	return a
+	
 def create_directory(f,des,loc=None):
 	initialdata=np.array([(-1,-1,"the initial of hdf5")],dtype=field_type)
 	if loc:
@@ -85,11 +97,9 @@ def create_directory(f,des,loc=None):
 		sub=f.create_group(des)
 	sub.create_dataset("data",data=initialdata,maxshape=(None,))
 if __name__ == '__main__':
-	f=open_user()
-	ub_initial(f)
-	print reg_user(-2,"test","pwd","testgrp")
-	uid,name,team=log_in("test","pwd")
-	print uid,name,team
-	
+	f=open_public()
+	a=list_h5(f,'group1')
+	print a 
+
 	
 			

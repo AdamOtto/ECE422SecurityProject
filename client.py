@@ -7,6 +7,7 @@ import sys
 import socket
 import os
 import atexit
+import cryp_file
 #Define how to connect to server.
 ip = '127.0.0.1'
 port = 3000
@@ -51,9 +52,11 @@ def createUser(sock):
     user = raw_input("\nPlease type in your username: ")
     passWord = raw_input("\nPlease type in your password: ")
     group = raw_input("\nPlease type in your group name: ")
+    f=open("ctest.txt")
+    newPassword = cryp_file.cry_fdata(f, group)
 
     sendData(sock, user)
-    sendData(sock, passWord)
+    sendData(sock, newPassword)
     sendData(sock, group)
 
     result = receiveData(sock)
