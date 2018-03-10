@@ -2,10 +2,10 @@ import h5py
 import numpy as np
 file_name='./serverhdf5/test.hdf5'
 private_file="./serverhdf5/private/private.hdf5"
-public_file="./serverhdf5/public/private.hdf5"
+public_file="./serverhdf5/public/public.hdf5"
 userdata_file="./serverhdf5/user/data.hdf5"
 dt = h5py.special_dtype(vlen=unicode) 
-field_type=[('uid','<i4'),('fid','<i4'),('context',dt)]
+field_type=[('uid','<i4'),('fname',dt),('context',dt)]
 user_field=[('uid','<i4'),('name',dt),('pwd',dt),('group',dt)]
 def open_private():
 	f=h5py.File(private_file,'a')
@@ -29,8 +29,8 @@ def write_h5(f,uid,fid,des,context):
 	if (len(userdata)==0):
 		data=np.append(data,newdata,axis=0)
 	else:
-		if (fid in userdata['fid']):
-			index=np.where((data['uid']==uid)&(data['fid']==fid))[0][0]
+		if (fid in userdata['fname']):
+			index=np.where((data['uid']==uid)&(data['fname']==fid))[0][0]
 			data[index]=newdata
 		else:
 			data=np.append(data,newdata,axis=0)
@@ -39,7 +39,7 @@ def write_h5(f,uid,fid,des,context):
 	
 	
 def initial(f):
-	initialdata=np.array([(-1,-1,"the initial of hdf5")],dtype=field_type)
+	initialdata=np.array([(-1,"-1","the initial of hdf5")],dtype=field_type)
 	grp=f.create_group("test")
 	grp.create_dataset("data",data=initialdata,maxshape=(None,))
 def ub_initial(f):
@@ -84,22 +84,29 @@ def list_h5(f,des):
 		return None
 	for v in grp.values():
 		if "/"+des+"/"+'data'== v.name:
+			for fname in v['fname']:
+				a.append(fname)
 		else:
-			a.append(v.name.replace(des,""))
+			a.append(v.name.replace("/"+des+"/",""))
 	return a
 	
 def create_directory(f,des,loc=None):
-	initialdata=np.array([(-1,-1,"the initial of hdf5")],dtype=field_type)
+	initialdata=np.array([(-1,"-1","the initial of hdf5")],dtype=field_type)
 	if loc:
 		grp=f[loc]
+		if des in grp:
+			return None
 		sub=grp.create_group(des)
 	else:
+		if des in grp:
+			return None
 		sub=f.create_group(des)
 	sub.create_dataset("data",data=initialdata,maxshape=(None,))
+	return "success!"
 if __name__ == '__main__':
 	f=open_public()
-	a=list_h5(f,'group1')
-	print a 
+	print list_h5(f,'group1')
+	print list_h5(f,'group1/test1')
 
 	
 			
