@@ -45,7 +45,8 @@ class EchoRequestHandler(SocketServer.BaseRequestHandler):
                 createUser(self)
             elif data == "login":
                 login(self)
-
+            elif data == "listFiles":
+                listAllFiles(self)
 
             #self.request.send(data)
             #self.request.sendall("Thank you, we have received your '{}' message.".format(data))
@@ -153,6 +154,12 @@ def login(handler):
         print("Login failed\n")
         sendData(handler,"Fail")
     return
+
+
+def listAllFiles(handler):
+    print("Now in listAllFiles function.")
+
+    
 
 
 def sendAck(handler):

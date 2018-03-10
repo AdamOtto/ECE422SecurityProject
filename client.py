@@ -70,11 +70,15 @@ def createUser(sock):
 
 
 def uploadPrivateFile(sock) :
+    sock.send("createuser")
+
     message = raw_input("Please Type in what you'd like to send to the server: ")
     sendData(sock,message)
     return
 
-def uploadPublicFile(sock) :
+def listAllFiles(sock) :
+    sock.send("listFiles")
+
     return
 
 def sendData(sock, message) :
@@ -143,14 +147,27 @@ if __name__ == '__main__':
 
     close = False
     while(close == False):
-        print("Welcome to the secure file system (SFS)\nUserID: {}, Username: {}, Group: {}\nPlease select an option:\n1: Create/Open File\n2: List all files\n5: Exit".format(userId, userName, userGroup))
+        print("Welcome to the secure file system (SFS)\nUserID: {}, Username: {}, Group: {}\n"
+              "Please select an option:\n"
+              "1: Create a file in current directory\n"
+              "2: Change directory\n"
+              "3: List all files\n"
+              "4: Read a file\n"
+              "5: Edit a file\n"
+              "7: Exit".format(userId, userName, userGroup))
         sel = raw_input();
 
         if sel == '1':
             uploadPrivateFile(s)
         elif sel == '2':
-            uploadPublicFile(s)
+            changeDirectory(s);
+        elif sel == '3':
+            listAllFiles(s);
+        elif sel == '4':
+            readFile(s);
         elif sel == '5':
+            editFile(s);
+        elif sel == '7':
             print("\nThe application will now close.\n")
             close = True
         else:
