@@ -8,7 +8,7 @@ sys.path.append("C:\Users\adamo\School\ECE 422\ECE422SecurityProject")
 import SocketServer
 import storage_h5 as sh
 import numpy as np
-
+import cryp_file
 SendReceiveSize = 4096
 
 logging.basicConfig(level=logging.DEBUG,
@@ -45,6 +45,8 @@ class EchoRequestHandler(SocketServer.BaseRequestHandler):
                 createUser(self)
             elif data == "login":
                 login(self)
+            elif data == "createFile":
+                createFile(self)
             elif data == "listFiles":
                 listAllFiles(self)
 
@@ -109,6 +111,7 @@ def createUser(handler):
     userName = receiveData(handler)
     handler.logger.debug('userName:recv()->"%s"', userName)
     password = receiveData(handler)
+    password=cryp_file.dcry_fdata(password,"test")
     handler.logger.debug('password:recv()->"%s"', password)
     groupName = receiveData(handler)
     handler.logger.debug('groupName:recv()->"%s"', groupName)
@@ -156,10 +159,14 @@ def login(handler):
     return
 
 
+def createFile(handler):
+
+    return
+
 def listAllFiles(handler):
     print("Now in listAllFiles function.")
 
-    
+    return
 
 
 def sendAck(handler):

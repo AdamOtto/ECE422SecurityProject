@@ -7,6 +7,7 @@ import sys
 import socket
 import os
 import atexit
+import cryp_file
 #Define how to connect to server.
 ip = '127.0.0.1'
 port = 3000
@@ -51,9 +52,11 @@ def createUser(sock):
     user = raw_input("\nPlease type in your username: ")
     passWord = raw_input("\nPlease type in your password: ")
     group = raw_input("\nPlease type in your group name: ")
+    f=open("ctest.txt")
+    newPassword = cryp_file.cry_fdata(f, group)
 
     sendData(sock, user)
-    sendData(sock, passWord)
+    sendData(sock, newPassword)
     sendData(sock, group)
 
     result = receiveData(sock)
@@ -72,14 +75,32 @@ def createUser(sock):
 def uploadPrivateFile(sock) :
     sock.send("createuser")
 
+    title = raw_input("File name: ")
     message = raw_input("Please Type in what you'd like to send to the server: ")
+
+    sendData(sock, title)
     sendData(sock,message)
     return
+
 
 def listAllFiles(sock) :
     sock.send("listFiles")
 
     return
+
+
+def changeDirectory(sock):
+
+    return
+
+
+def readFile(sock):
+    return
+
+
+def editFile(sock):
+    return
+
 
 def sendData(sock, message) :
     if (isinstance(message, int) or isinstance(message, float)):
