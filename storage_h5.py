@@ -98,7 +98,7 @@ def create_directory(f,des,loc=None):
 			return None
 		sub=grp.create_group(des)
 	else:
-		if des in grp:
+		if des in f:
 			return None
 		sub=f.create_group(des)
 	sub.create_dataset("data",data=initialdata,maxshape=(None,))
