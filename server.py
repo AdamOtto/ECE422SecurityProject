@@ -111,7 +111,7 @@ def createUser(handler):
     userName = receiveData(handler)
     handler.logger.debug('userName:recv()->"%s"', userName)
     password = receiveData(handler)
-    password=cryp_file.dcry_fdata(password,"test")
+    #password=cryp_file.dcry_fdata(password,"test")
     handler.logger.debug('password:recv()->"%s"', password)
     groupName = receiveData(handler)
     handler.logger.debug('groupName:recv()->"%s"', groupName)
@@ -123,12 +123,15 @@ def createUser(handler):
     handler.logger.debug('userID->"%s"', uid)
 
     #Create User
+    print("Trying to create user...")
     result = sh.reg_user(uid, userName, password, groupName)
     handler.logger.debug('result->"%s"', result)
 
     if(result == "sucess"):
         sendData(handler,"newUserCreated")
         sendData(handler,uid)
+
+    print("Exiting CreateUser")
     return
 
 def login(handler):
@@ -156,11 +159,33 @@ def login(handler):
     else:
         print("Login failed\n")
         sendData(handler,"Fail")
+    print("Exiting login function")
     return
 
 
 def createFile(handler):
+    print("in CreateFile function")
+    f = sh.open_public()
 
+    fileName = receiveData(handler)
+    handler.logger.debug('userName:recv()->"%s"', fileName)
+    message = receiveData(handler)
+    handler.logger.debug('userName:recv()->"%s"', message)
+    userID = receiveData(handler)
+    handler.logger.debug('userName:recv()->"%s"', userID)
+    directory = receiveData(handler)
+    handler.logger.debug('userName:recv()->"%s"', directory)
+
+
+
+    result = sh.write_h5(f, int(userID), fileName, directory, message)
+
+    print(result)
+    if result is None:
+        sendData(handler, "FAILURE: File NOT created.")
+    else:
+        sendData(handler, "success")
+    print("Exiting createFile...")
     return
 
 def listAllFiles(handler):
@@ -173,7 +198,7 @@ def sendAck(handler):
     handler.request.send("ack")
 
 def waitForAck(handler):
-    response = handler.request.recv(SendReceiveSize)
+    response = handler.request.recv(3)
     if response == "ack":
         print("received ack\n")
         return

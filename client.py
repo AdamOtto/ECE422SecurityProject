@@ -2,12 +2,13 @@
 References:
     https://pymotw.com/2/SocketServer/
 """
+import time
 import logging
 import sys
 import socket
 import os
 import atexit
-import cryp_file
+#import cryp_file
 #Define how to connect to server.
 ip = '127.0.0.1'
 port = 3000
@@ -16,6 +17,7 @@ SendReceiveSize = 4096
 userId = ""
 userName = ""
 userGroup = ""
+directory = ""
 
 def cls():
     os.system('cls' if os.name=='nt' else 'clear')
@@ -40,6 +42,9 @@ def login(sock):
         userName = receiveData(sock)
         global userGroup
         userGroup = receiveData(sock)
+        global directory
+        directory = "/"
+
         return True
     else:
         print("Login unsuccessful.  Make sure you typed in your username and password correctly\n")
@@ -53,10 +58,11 @@ def createUser(sock):
     passWord = raw_input("\nPlease type in your password: ")
     group = raw_input("\nPlease type in your group name: ")
     f=open("ctest.txt")
-    newPassword = cryp_file.cry_fdata(f, group)
+    #newPassword = cryp_file.cry_fdata(f, group)
 
     sendData(sock, user)
-    sendData(sock, newPassword)
+    #sendData(sock, newPassword)
+    sendData(sock, passWord)
     sendData(sock, group)
 
     result = receiveData(sock)
@@ -68,18 +74,31 @@ def createUser(sock):
         userName = user
         global userGroup
         userGroup = group
+        global directory
+        directory = "/"
         return True
     return False
 
 
 def uploadPrivateFile(sock) :
-    sock.send("createuser")
+    global userId
+    global directory
+
+    sock.send("createFile")
 
     title = raw_input("File name: ")
-    message = raw_input("Please Type in what you'd like to send to the server: ")
-
     sendData(sock, title)
-    sendData(sock,message)
+    message = raw_input("Please Type in what you'd like to send to the server: ")
+    sendData(sock, message)
+    time.sleep(0.1)
+    sendData(sock,userId)
+    time.sleep(0.1)
+    sendData(sock, directory)
+
+    time.sleep(0.1)
+
+    result = receiveData(sock)
+
     return
 
 
@@ -122,9 +141,9 @@ def sendAck(sock):
     sock.send("ack")
 
 def waitForAck(sock):
-    response = sock.recv(SendReceiveSize)
+    response = sock.recv(3)
     if response == "ack":
-        #print("Received ack\n")
+        print("Received ack\n")
         return
     else:
         print("Error in communication with the server.\nReceived: {}".format(response))
@@ -152,6 +171,7 @@ if __name__ == '__main__':
     print("DONE\n")
 
     '''Login'''
+    '''
     close = False
     while(close == False):
         print("Welcome to the secure file system (SFS)\nPlease select an option\n1: Login\n2: Create new user\n")
@@ -164,18 +184,24 @@ if __name__ == '__main__':
             print("\nInvalid input\n")
         raw_input("\nPress Enter to continue.\n")
         cls()
+    '''
 
-
+    '''For testing only'''
+    userId = 0
+    userGroup = "test"
+    userName = "test"
+    directory = "/"
     close = False
     while(close == False):
-        print("Welcome to the secure file system (SFS)\nUserID: {}, Username: {}, Group: {}\n"
+        print("Welcome to the secure file system (SFS)\nUserID: {}, Username: {}, Group: {}, Directory: {}\n"
               "Please select an option:\n"
               "1: Create a file in current directory\n"
               "2: Change directory\n"
               "3: List all files\n"
               "4: Read a file\n"
               "5: Edit a file\n"
-              "7: Exit".format(userId, userName, userGroup))
+              "7: Exit"
+              .format(userId, userName, userGroup, directory))
         sel = raw_input();
 
         if sel == '1':
