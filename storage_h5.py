@@ -40,8 +40,8 @@ def write_h5(f,uid,fid,des,context):
 	
 def initial(f):
 	initialdata=np.array([(-1,"-1","the initial of hdf5")],dtype=field_type)
-	grp=f.create_group("test")
-	grp.create_dataset("data",data=initialdata,maxshape=(None,))
+	
+	f.create_dataset("data",data=initialdata,maxshape=(None,))
 def ub_initial(f):
 	initialdata=np.array([(-1,"-1","-1","the initial of hdf5")],dtype=user_field)
 	f.create_dataset("data",data=initialdata,maxshape=(None,))
@@ -105,6 +105,9 @@ def create_directory(f,des,loc=None):
 	return "success!"
 if __name__ == '__main__':
 	f=open_public()
+	if write_h5(f,-1,"root","/","roottest")==None:
+		print "bug"
+		
 	print list_h5(f,'group1')
 	print list_h5(f,'group1/test1')
 
