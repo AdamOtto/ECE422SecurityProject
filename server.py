@@ -49,6 +49,12 @@ class EchoRequestHandler(SocketServer.BaseRequestHandler):
                 createFile(self)
             elif data == "listFiles":
                 listAllFiles(self)
+            elif data == "changeDirectory":
+                changeDirectory(self)
+            elif data == "readFile":
+                readFile(self)
+            elif data == "editFile":
+                editFile(self)
 
             #self.request.send(data)
             #self.request.sendall("Thank you, we have received your '{}' message.".format(data))
@@ -104,7 +110,11 @@ class EchoServer(SocketServer.TCPServer):
         self.logger.debug('close_request(%s)', request_address)
         return SocketServer.TCPServer.close_request(self, request_address)
 
+'''
+Create User
 
+Allows for a new user to register on the database.
+'''
 def createUser(handler):
     print("Now in the createUser function")
 
@@ -134,6 +144,11 @@ def createUser(handler):
     print("Exiting CreateUser")
     return
 
+'''
+Login
+
+Allows an existing user to log in.
+'''
 def login(handler):
     print("Now in the login function")
 
@@ -162,7 +177,11 @@ def login(handler):
     print("Exiting login function")
     return
 
+'''
+create file
 
+Creates a file on the database under the users current directory
+'''
 def createFile(handler):
     print("in CreateFile function")
     f = sh.open_public()
@@ -188,11 +207,72 @@ def createFile(handler):
     print("Exiting createFile...")
     return
 
+'''
+List all files
+
+Lists all files and folders in the user's current directory
+'''
 def listAllFiles(handler):
     print("Now in listAllFiles function.")
 
+    directory = receiveData(handler)
+    handler.logger.debug('userName:recv()->"%s"', directory)
+
+    f = sh.open_public()
+    result = sh.list_h5(f, directory)
+    print(result)
+    sendData(handler, "Got the directory!")
+
     return
 
+'''
+Change Directory
+
+Allows the user to change their directory and read files of other users.
+'''
+def changeDirectory(handler):
+    print("Now in changeDirectory function.")
+
+    newDir = receiveData(handler)
+    handler.logger.debug('userName:recv()->"%s"', newDir)
+
+    '''Check if exists and change directory'''
+    #f = sh.open_public()
+    #result = sh.read_h5(f, newDir)
+
+    #if result != None:
+    sendData(handler, newDir)
+
+    return
+
+'''
+Read File
+
+Used to read a file on the database.  Cannot read a file from a different group.
+'''
+def readFile(handler):
+    print("Now in readFile function.")
+
+    fileName = receiveData(handler)
+    handler.logger.debug('userName:recv()->"%s"', fileName)
+
+    f = sh.open_public()
+    result = sh.read_h5(f, fileName)
+    if(result != None):
+        sendData(handler,result)
+    else:
+        sendData(handler,"File does not exist.")
+    return
+
+'''
+Edit File
+
+Used to edit a file on the database.
+'''
+def editFile(handler):
+    print("Now in editFile function.")
+
+    return
 
 def sendAck(handler):
     handler.request.send("ack")

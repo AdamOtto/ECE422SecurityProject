@@ -24,7 +24,6 @@ def write_h5(f,uid,fid,des,context):
 		return None
 	data=np.array(grp["data"])
 	userdata=data[data['uid']==uid]
-	
 	newdata=np.array([(uid,fid,context)],dtype=field_type)
 	if (len(userdata)==0):
 		data=np.append(data,newdata,axis=0)
@@ -36,7 +35,7 @@ def write_h5(f,uid,fid,des,context):
 			data=np.append(data,newdata,axis=0)
 	grp["data"].resize(data.shape)
 	grp["data"][...]=data
-	
+	return "success"
 	
 def initial(f):
 	initialdata=np.array([(-1,"-1","the initial of hdf5")],dtype=field_type)
@@ -83,7 +82,7 @@ def list_h5(f,des):
 	else:
 		return None
 	for v in grp.values():
-		if "/"+des+"/"+'data'== v.name:
+		if "/"+des+"/"+'data'== v.name or v.name == "/data":
 			for fname in v['fname']:
 				a.append(fname)
 		else:
@@ -104,12 +103,7 @@ def create_directory(f,des,loc=None):
 	sub.create_dataset("data",data=initialdata,maxshape=(None,))
 	return "success!"
 if __name__ == '__main__':
-	f=open_public()
-	if write_h5(f,-1,"root","/","roottest")==None:
-		print "bug"
-		
-	print list_h5(f,'group1')
-	print list_h5(f,'group1/test1')
-
+    f=open_user()
+    ub_initial(f)
 	
 			

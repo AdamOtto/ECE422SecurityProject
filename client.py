@@ -85,17 +85,14 @@ def uploadPrivateFile(sock) :
     global directory
 
     sock.send("createFile")
+    waitForAck(sock)
 
     title = raw_input("File name: ")
     sendData(sock, title)
     message = raw_input("Please Type in what you'd like to send to the server: ")
     sendData(sock, message)
-    time.sleep(0.1)
     sendData(sock,userId)
-    time.sleep(0.1)
     sendData(sock, directory)
-
-    time.sleep(0.1)
 
     result = receiveData(sock)
 
@@ -104,20 +101,50 @@ def uploadPrivateFile(sock) :
 
 def listAllFiles(sock) :
     sock.send("listFiles")
+    waitForAck(sock)
 
+    global directory
+    sendData(sock, directory)
+
+    result = receiveData(sock)
     return
 
 
 def changeDirectory(sock):
+    sock.send("changeDirectory")
+    waitForAck(sock)
+
+    newDirectory = raw_input("Type in the directory you'd like to access: ")
+    sendData(sock, newDirectory)
+
+
+
+    result = receiveData(sock)
+
+    if(result != "Failed"):
+        global directory
+        directory = result
+    else:
+        print("Directory doesn't exist.")
 
     return
 
 
 def readFile(sock):
+    sock.send("readFile")
+    waitForAck(sock)
+
+    fileName = raw_input("Which file would you like to read: ")
+    sendData(sock, fileName)
+
+    result = receiveData(sock)
+    print(result)
     return
 
 
 def editFile(sock):
+    sock.send("editFile")
+    waitForAck(sock)
     return
 
 
@@ -171,7 +198,6 @@ if __name__ == '__main__':
     print("DONE\n")
 
     '''Login'''
-    '''
     close = False
     while(close == False):
         print("Welcome to the secure file system (SFS)\nPlease select an option\n1: Login\n2: Create new user\n")
@@ -184,13 +210,13 @@ if __name__ == '__main__':
             print("\nInvalid input\n")
         raw_input("\nPress Enter to continue.\n")
         cls()
-    '''
 
-    '''For testing only'''
+    '''For testing only
     userId = 0
     userGroup = "test"
     userName = "test"
     directory = "/"
+    '''
     close = False
     while(close == False):
         print("Welcome to the secure file system (SFS)\nUserID: {}, Username: {}, Group: {}, Directory: {}\n"
@@ -222,6 +248,11 @@ if __name__ == '__main__':
         raw_input("\nPress Enter to continue.\n")
         cls()
 
+    # Clean up
+    print('closing socket')
+    s.close()
+    print('done')
+
     '''
     # Send the data
     message = raw_input("Please Type in what you'd like to send to the server: ")
@@ -235,7 +266,3 @@ if __name__ == '__main__':
     response = s.recv(SendReceiveSize)
     print("response from server: {}".format(response))
     '''
-    # Clean up
-    print('closing socket')
-    s.close()
-    print('done')
