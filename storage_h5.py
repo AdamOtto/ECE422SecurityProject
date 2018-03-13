@@ -82,7 +82,7 @@ def list_h5(f,des):
 	else:
 		return None
 	for v in grp.values():
-		if "/"+des+"/"+'data'== v.name or v.name == "/data":
+		if "/"+des+"/"+'data'== v.name or v.name == "/data" or des+"/"+'data' == v.name:
 			for fname in v['fname']:
 				a.append(fname)
 		else:
@@ -103,7 +103,7 @@ def create_directory(f,des,loc=None):
 	sub.create_dataset("data",data=initialdata,maxshape=(None,))
 	return "success!"
 if __name__ == '__main__':
-    f=open_user()
-    ub_initial(f)
+    f=open_public()
+    initial(f)
 	
 			

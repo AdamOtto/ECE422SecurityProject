@@ -106,7 +106,11 @@ def listAllFiles(sock) :
     global directory
     sendData(sock, directory)
 
-    result = receiveData(sock)
+    result = ""
+    while(result != "-#-done-#-"):
+        result = receiveData(sock)
+        if (result != "-1" and result != "-#-done-#-"):
+            print(result)
     return
 
 
@@ -114,25 +118,44 @@ def changeDirectory(sock):
     sock.send("changeDirectory")
     waitForAck(sock)
 
+    global directory
+    sendData(sock, directory)
+    #print("(dont forget to include a '/' before the directory name)")
     newDirectory = raw_input("Type in the directory you'd like to access: ")
     sendData(sock, newDirectory)
 
-
-
     result = receiveData(sock)
 
-    if(result != "Failed"):
+    if(result != "-#-fail-#-"):
         global directory
         directory = result
+        print("Changed to {} directory.".format(directory))
     else:
         print("Directory doesn't exist.")
 
     return
 
+def createDirectory(sock):
+    sock.send("createDirectory")
+    waitForAck(sock)
+
+    global directory
+    sendData(sock, directory)
+    newDir = raw_input("new directory name: ")
+    sendData(sock, newDir)
+
+    result = receiveData(sock)
+    print(result)
+    return
 
 def readFile(sock):
     sock.send("readFile")
     waitForAck(sock)
+
+    global directory
+    sendData(sock, directory)
+    global userId
+    sendData(sock, userId)
 
     fileName = raw_input("Which file would you like to read: ")
     sendData(sock, fileName)
@@ -145,6 +168,29 @@ def readFile(sock):
 def editFile(sock):
     sock.send("editFile")
     waitForAck(sock)
+
+    global userId
+    sendData(sock, userId)
+    global directory
+    sendData(sock, directory)
+    fileName = raw_input("Which file would you like to edit: ")
+    sendData(sock, fileName)
+
+    result = receiveData(sock)
+
+    if result == "CanWrite":
+        original = receiveData(sock)
+        print(original)
+        newContent = raw_input("Type in the new content of this file: ")
+        sendData(sock, newContent)
+        result = receiveData(sock)
+        if result == "success":
+            print("Update successful.")
+        else:
+            print(result)
+    else:
+        print(result)
+
     return
 
 
@@ -158,10 +204,10 @@ def sendData(sock, message) :
     return
 
 def receiveData(sock):
-    print('waiting for response from server...')
+    #print('waiting for response from server...')
     response = sock.recv(SendReceiveSize)
     sendAck(sock)
-    print("response from server: {}".format(response))
+    #print("response from server: {}".format(response))
     return response
 
 def sendAck(sock):
@@ -223,9 +269,10 @@ if __name__ == '__main__':
               "Please select an option:\n"
               "1: Create a file in current directory\n"
               "2: Change directory\n"
-              "3: List all files\n"
-              "4: Read a file\n"
-              "5: Edit a file\n"
+              "3: Create directory\n"
+              "4: List all files\n"
+              "5: Read a file\n"
+              "6: Edit a file\n"
               "7: Exit"
               .format(userId, userName, userGroup, directory))
         sel = raw_input();
@@ -235,10 +282,12 @@ if __name__ == '__main__':
         elif sel == '2':
             changeDirectory(s);
         elif sel == '3':
-            listAllFiles(s);
+            createDirectory(s);
         elif sel == '4':
-            readFile(s);
+            listAllFiles(s);
         elif sel == '5':
+            readFile(s);
+        elif sel == '6':
             editFile(s);
         elif sel == '7':
             print("\nThe application will now close.\n")

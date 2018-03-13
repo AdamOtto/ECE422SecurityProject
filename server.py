@@ -51,6 +51,8 @@ class EchoRequestHandler(SocketServer.BaseRequestHandler):
                 listAllFiles(self)
             elif data == "changeDirectory":
                 changeDirectory(self)
+            elif data == "createDirectory":
+                createDirectory(self)
             elif data == "readFile":
                 readFile(self)
             elif data == "editFile":
@@ -221,8 +223,10 @@ def listAllFiles(handler):
     f = sh.open_public()
     result = sh.list_h5(f, directory)
     print(result)
-    sendData(handler, "Got the directory!")
 
+    for r in result:
+        sendData(handler, r)
+    sendData(handler, "-#-done-#-")
     return
 
 '''
@@ -233,16 +237,50 @@ Allows the user to change their directory and read files of other users.
 def changeDirectory(handler):
     print("Now in changeDirectory function.")
 
+    currDir = receiveData(handler)
+    handler.logger.debug('userName:recv()->"%s"', currDir)
     newDir = receiveData(handler)
     handler.logger.debug('userName:recv()->"%s"', newDir)
 
-    '''Check if exists and change directory'''
-    #f = sh.open_public()
-    #result = sh.read_h5(f, newDir)
+    if newDir == "/":
+        sendData(handler, "/")
+        return
 
-    #if result != None:
-    sendData(handler, newDir)
+    if(currDir != "/"):
+        newDir = "/" + newDir
 
+    '''Check if newDir exists'''
+    f = sh.open_public()
+    result = sh.list_h5(f, currDir)
+
+    if (currDir + newDir) in result:
+        sendData(handler, (currDir + newDir))
+    else:
+        sendData(handler, "-#-fail-#-")
+
+    return
+
+'''
+Create Directory
+
+Create a new directory in the database.
+'''
+def createDirectory(handler):
+    print("Now in createDirectory function.")
+
+
+    currDir = receiveData(handler)
+    handler.logger.debug('userName:recv()->"%s"', currDir)
+    newDir = receiveData(handler)
+    handler.logger.debug('userName:recv()->"%s"', newDir)
+
+    f = sh.open_public()
+    result = sh.create_directory(f, newDir, loc = currDir)
+
+    if(result == "success!"):
+        sendData(handler, result)
+    else:
+        sendData(handler, "ERROR: Directory not created...")
     return
 
 '''
@@ -253,13 +291,27 @@ Used to read a file on the database.  Cannot read a file from a different group.
 def readFile(handler):
     print("Now in readFile function.")
 
+    currDir = receiveData(handler)
+    handler.logger.debug('userName:recv()->"%s"', currDir)
+    currUserID = receiveData(handler)
+    handler.logger.debug('userName:recv()->"%s"', currUserID)
     fileName = receiveData(handler)
     handler.logger.debug('userName:recv()->"%s"', fileName)
 
+
     f = sh.open_public()
-    result = sh.read_h5(f, fileName)
-    if(result != None):
-        sendData(handler,result)
+    fUser = sh.open_user()
+    users = sh.read_h5(fUser,"/")
+    currGrp = users[users['uid'] == int(currUserID)]['group']
+    result = sh.read_h5(f, currDir)
+    re = result[result['fname']==fileName]
+    if(re != None):
+        fuid = re['uid']
+        fgroup = users[users['uid'] == fuid]['group']
+        if fgroup != currGrp:
+            sendData(handler, "You are not allowed to access this file!")
+            return
+        sendData(handler, re['context'][0])
     else:
         sendData(handler,"File does not exist.")
     return
@@ -271,6 +323,31 @@ Used to edit a file on the database.
 '''
 def editFile(handler):
     print("Now in editFile function.")
+
+    currUID = receiveData(handler)
+    currDir = receiveData(handler)
+    fileName = receiveData(handler)
+
+    f = sh.open_public()
+    result = sh.list_h5(f, currDir)
+
+    if(fileName in result):
+        re = sh.read_h5(f, currDir)
+        if int(currUID) == re[re['fname']==fileName]['uid']:
+
+            sendData(handler, "CanWrite")
+            sendData(handler, re[re['fname']==fileName]['context'][0])
+            newMessage = receiveData(handler)
+            result = sh.write_h5(f, int(currUID), fileName, currDir, newMessage)
+            print(result)
+            if result is None:
+                sendData(handler, "FAILURE: File NOT edited.")
+            else:
+                sendData(handler, "success")
+        else:
+            sendData(handler, "Permission Denied.")
+    else:
+        sendData(handler, "File doesn't exist.")
 
     return
 
