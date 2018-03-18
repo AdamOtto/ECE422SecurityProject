@@ -146,5 +146,7 @@ def create_directory(f,des,loc=None):
 if __name__ == '__main__':
     f=open_public()
     initial(f)
+    uf = open_user()
+    ub_initial(uf)
 	
 			
