@@ -198,7 +198,6 @@ def createFile(handler):
     handler.logger.debug('userName:recv()->"%s"', directory)
 
 
-
     result = sh.write_h5(f, int(userID), fileName, directory, message)
 
     print(result)
@@ -305,7 +304,8 @@ def readFile(handler):
     currGrp = users[users['uid'] == int(currUserID)]['group']
     result = sh.read_h5(f, currDir)
     re = result[result['fname']==fileName]
-    if(re != None):
+    if(re != None and re != []):
+        print(re)
         fuid = re['uid']
         fgroup = users[users['uid'] == fuid]['group']
         if fgroup != currGrp:
