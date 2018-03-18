@@ -13,12 +13,12 @@ def file_json(user,team,filename):
 	except:
 		return None
 
-def cry_fdata(f,team):
+def cry_fdata(data,team):
 	
 	h=SHA256.new()
 	h.update(team)
 	c=ARC2.new(h.hexdigest(),ARC2.MODE_ECB,"")
-	data=f.read()
+	#data=f.read()
 	
 	if (len(data)%8==0):
 		to_crypto=data

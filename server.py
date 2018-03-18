@@ -57,7 +57,10 @@ class EchoRequestHandler(SocketServer.BaseRequestHandler):
                 readFile(self)
             elif data == "editFile":
                 editFile(self)
-
+            elif data == "renameFile":
+                renameFile(self)
+            elif data == "deleteFile":
+                deleteFile(self)
             #self.request.send(data)
             #self.request.sendall("Thank you, we have received your '{}' message.".format(data))
 
@@ -350,6 +353,65 @@ def editFile(handler):
         sendData(handler, "File doesn't exist.")
 
     return
+
+'''
+Rename File
+
+Used to rename a file on the database.
+'''
+def renameFile(handler):
+    print("Now in renameFile function.")
+    currUID = receiveData(handler)
+    currDir = receiveData(handler)
+    fileName = receiveData(handler)
+
+    f = sh.open_public()
+    result = sh.list_h5(f, currDir)
+    if (fileName in result):
+        re = sh.read_h5(f, currDir)
+        if int(currUID) == re[re['fname'] == fileName]['uid']:
+            sendData(handler, "CanRename")
+            print(re[re['fname'] == fileName]['fname'])
+            sendData(handler, re[re['fname'] == fileName]['fname'][0])
+            newName = receiveData(handler)
+            result = sh.rename_h5(f, int(currUID), fileName, currDir, newName)
+            print(result)
+            if result is None:
+                sendData(handler, "FAILURE: File NOT renamed.")
+            else:
+                sendData(handler, "success")
+        else:
+            sendData(handler, "Permission Denied.")
+    else:
+        sendData(handler, "File doesn't exist.")
+
+'''
+Delete File
+
+Used to delete a file on the database.
+'''
+def deleteFile(handler):
+    print("Now in deleteFile function")
+
+    currUID = receiveData(handler)
+    currDir = receiveData(handler)
+    fileName = receiveData(handler)
+
+    f = sh.open_public()
+    result = sh.list_h5(f, currDir)
+    if (fileName in result):
+        re = sh.read_h5(f, currDir)
+        if int(currUID) == re[re['fname'] == fileName]['uid']:
+            result = sh.delete_h5(f, int(currUID), fileName, currDir)
+            print(result)
+            if result is None:
+                sendData(handler, "FAILURE: File NOT renamed.")
+            else:
+                sendData(handler, "success")
+        else:
+            sendData(handler, "Permission Denied.")
+    else:
+        sendData(handler, "File doesn't exist.")
 
 def sendAck(handler):
     handler.request.send("ack")

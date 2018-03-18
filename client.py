@@ -213,6 +213,61 @@ def editFile(sock):
 
     return
 
+def renameFile(sock):
+    sock.send("renameFile")
+    waitForAck(sock)
+
+    global userGroup
+    global userId
+    sendData(sock, userId)
+    global directory
+    sendData(sock, directory)
+    fileName = raw_input("Which file would you like to rename: ")
+    fileName = cryp_file.cry_fdata(fileName, userGroup).encode('hex')
+    sendData(sock, fileName)
+
+    result = receiveData(sock)
+
+    if result == "CanRename":
+        original = receiveData(sock)
+        original = cryp_file.dcry_fdata(original.decode('hex'), userGroup)
+        print(original)
+        newContent = raw_input("Type in the new name of this file: ")
+        newContent = cryp_file.cry_fdata(newContent, userGroup).encode('hex')
+        sendData(sock, newContent)
+        result = receiveData(sock)
+        if result == "success":
+            print("Update successful.")
+        else:
+            print(result)
+    else:
+        print(result)
+
+
+def deleteFile(sock):
+    sock.send("deleteFile")
+    waitForAck(sock)
+
+    global userGroup
+    global userId
+    sendData(sock, userId)
+    global directory
+    sendData(sock, directory)
+    fileName = raw_input("Which file would you like to rename: ")
+    fileName = cryp_file.cry_fdata(fileName, userGroup).encode('hex')
+    sendData(sock, fileName)
+
+    result = receiveData(sock)
+
+    if result == "CanRename":
+        result = receiveData(sock)
+        if result == "success":
+            print("Update successful.")
+        else:
+            print(result)
+    else:
+        print(result)
+
 def sendData(sock, message) :
     if (isinstance(message, int) or isinstance(message, float)):
         temp = str(message)
