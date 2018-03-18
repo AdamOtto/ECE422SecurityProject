@@ -36,7 +36,48 @@ def write_h5(f,uid,fid,des,context):
 	grp["data"].resize(data.shape)
 	grp["data"][...]=data
 	return "success"
-	
+def delete_h5(f,uid,fid,des):
+	if des in f:
+		grp=f[des]
+	else:
+		return None
+	data=np.array(grp["data"])
+	userdata=data[data['uid']==uid]
+	if (len(userdata)==0):
+		return "No such file"
+	else:
+		if (fid in userdata['fname']):
+			index=np.where((data['uid']==uid)&(data['fname']==fid))[0][0]
+			if index:
+				data=np.delete(data,index)
+			else:
+				return "No such file"
+		else:
+			return "No such file"
+	grp["data"].resize(data.shape)
+	grp["data"][...]=data
+	return "success"
+def rename_h5(f,uid,fid,des,newname):
+	if des in f:
+		grp=f[des]
+	else:
+		return None
+	data=np.array(grp["data"])
+	userdata=data[data['uid']==uid]
+	if (len(userdata)==0):
+		return "No such file"
+	else:
+		if (fid in userdata['fname']):
+			index=np.where((data['uid']==uid)&(data['fname']==fid))[0][0]
+			if index:
+				data[index]['fname']=newname
+			else:
+				return "No such file"
+		else:
+			return "No such file"
+	grp["data"].resize(data.shape)
+	grp["data"][...]=data
+	return "success"
 def initial(f):
 	initialdata=np.array([(-1,"-1","the initial of hdf5")],dtype=field_type)
 	
