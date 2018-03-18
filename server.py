@@ -173,7 +173,7 @@ def login(handler):
         print("Login Successful\n")
         sendData(handler,"success")
 
-        sendData(handler, result[0])
+        sendData(handler, str(result[0]))
         sendData(handler, result[1])
         sendData(handler, result[2])
     else:

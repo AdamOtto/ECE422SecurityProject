@@ -254,7 +254,7 @@ def deleteFile(sock):
     sendData(sock, userId)
     global directory
     sendData(sock, directory)
-    fileName = takeInput("Which file would you like to rename: ")
+    fileName = takeInput("Which file would you like to delete: ")
     fileName = cryp_file.cry_fdata(fileName, userGroup).encode('hex')
     sendData(sock, fileName)
 
@@ -301,6 +301,7 @@ def sendAck(sock):
 def waitForAck(sock):
     response = sock.recv(3)
     if response == "ack":
+        #This would be a good place to put a timeout, but who has time for that.
         #print("Received ack\n")
         return
     else:
@@ -392,17 +393,3 @@ if __name__ == '__main__':
     print('closing socket')
     s.close()
     print('done')
-
-    '''
-    # Send the data
-    message = raw_input("Please Type in what you'd like to send to the server: ")
-    print("sending data: {}".format(message))
-    #len_sent = s.send(message)
-    s.send(message)
-
-    # Receive a response
-    print('waiting for response...')
-    #response = s.recv(len_sent)
-    response = s.recv(SendReceiveSize)
-    print("response from server: {}".format(response))
-    '''
