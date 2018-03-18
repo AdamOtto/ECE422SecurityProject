@@ -1,0 +1,21 @@
+ECE422 Security Project.
+
+Adam Otto
+Yiding Fan
+
+Server:  The server must be started before the client.  The server stores all the files, directories and users in the system.  The server also grants permissions to the users to read files belonging to their group.  The server uses storage_h5 to communicate with the HDF5 database files located in the "serverhdf5" folder.
+
+Client:  The client is how the user communicates with the server.  You must first log in or create a user before you can access the server.
+
+Both the client and the server require the following libraries.
+PyYAML
+chardet
+h5py
+numpy
+pycrypto
+shellescape
+six
+urllib3
+wheel
+
+The client and server are created using python, you will need to use python compilers to create and run the executables.
