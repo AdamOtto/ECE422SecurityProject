@@ -25,9 +25,9 @@ def cls():
 def login(sock):
     sock.send("login")
     waitForAck(sock)
-    user = raw_input("\nPlease type in your username: ")
-    passWord = raw_input("\nPlease type in your password: ")
-    group = raw_input("\nPlease type in your group name: ")
+    user = takeInput("\nPlease type in your username: ")
+    passWord = takeInput("\nPlease type in your password: ")
+    group = takeInput("\nPlease type in your group name: ")
 
     user = cryp_file.cry_fdata(user, group).encode('hex')
     passWord = cryp_file.cry_fdata(passWord, group).encode('hex')
@@ -59,9 +59,9 @@ def createUser(sock):
     sock.send("createuser")
     waitForAck(sock)
 
-    user = raw_input("\nPlease type in your username: ")
-    passWord = raw_input("\nPlease type in your password: ")
-    group = raw_input("\nPlease type in your group name: ")
+    user = takeInput("\nPlease type in your username: ")
+    passWord = takeInput("\nPlease type in your password: ")
+    group = takeInput("\nPlease type in your group name: ")
 
     user = cryp_file.cry_fdata(user, group).encode('hex')
     passWord = cryp_file.cry_fdata(passWord, group).encode('hex')
@@ -92,8 +92,8 @@ def uploadPrivateFile(sock) :
     sock.send("createFile")
     waitForAck(sock)
 
-    title = raw_input("File name: ")
-    message = raw_input("Please Type in what you'd like to send to the server: ")
+    title = takeInput("File name: ")
+    message = takeInput("Please Type in what you'd like to send to the server: ")
 
     #Encrypt data
     global userGroup
@@ -122,8 +122,9 @@ def listAllFiles(sock) :
         result = receiveData(sock)
         if (result != "-1" and result != "-#-done-#-"):
             global userGroup
-            temp = cryp_file.dcry_fdata(result.decode('hex'), userGroup)
-            print(temp)
+            if result[0] != '/':
+                result = cryp_file.dcry_fdata(result.decode('hex'), userGroup)
+            print(result)
     return
 
 
@@ -134,7 +135,7 @@ def changeDirectory(sock):
     global directory
     sendData(sock, directory)
     #print("(dont forget to include a '/' before the directory name)")
-    newDirectory = raw_input("Type in the directory you'd like to access: ")
+    newDirectory = takeInput("Type in the directory you'd like to access: ")
     sendData(sock, newDirectory)
 
     result = receiveData(sock)
@@ -154,7 +155,7 @@ def createDirectory(sock):
 
     global directory
     sendData(sock, directory)
-    newDir = raw_input("new directory name: ")
+    newDir = takeInput("new directory name: ")
     sendData(sock, newDir)
 
     result = receiveData(sock)
@@ -170,7 +171,7 @@ def readFile(sock):
     global userId
     sendData(sock, userId)
 
-    fileName = raw_input("Which file would you like to read: ")
+    fileName = takeInput("Which file would you like to read: ")
     fileName = cryp_file.cry_fdata(fileName, userGroup).encode('hex')
     sendData(sock, fileName)
 
@@ -190,7 +191,7 @@ def editFile(sock):
     sendData(sock, userId)
     global directory
     sendData(sock, directory)
-    fileName = raw_input("Which file would you like to edit: ")
+    fileName = takeInput("Which file would you like to edit: ")
     fileName = cryp_file.cry_fdata(fileName, userGroup).encode('hex')
     sendData(sock, fileName)
 
@@ -200,7 +201,7 @@ def editFile(sock):
         original = receiveData(sock)
         original = cryp_file.dcry_fdata(original.decode('hex'), userGroup)
         print(original)
-        newContent = raw_input("Type in the new content of this file: ")
+        newContent = takeInput("Type in the new content of this file: ")
         newContent = cryp_file.cry_fdata(newContent, userGroup).encode('hex')
         sendData(sock, newContent)
         result = receiveData(sock)
@@ -222,7 +223,7 @@ def renameFile(sock):
     sendData(sock, userId)
     global directory
     sendData(sock, directory)
-    fileName = raw_input("Which file would you like to rename: ")
+    fileName = takeInput("Which file would you like to rename: ")
     fileName = cryp_file.cry_fdata(fileName, userGroup).encode('hex')
     sendData(sock, fileName)
 
@@ -232,7 +233,7 @@ def renameFile(sock):
         original = receiveData(sock)
         original = cryp_file.dcry_fdata(original.decode('hex'), userGroup)
         print(original)
-        newContent = raw_input("Type in the new name of this file: ")
+        newContent = takeInput("Type in the new name of this file: ")
         newContent = cryp_file.cry_fdata(newContent, userGroup).encode('hex')
         sendData(sock, newContent)
         result = receiveData(sock)
@@ -253,7 +254,7 @@ def deleteFile(sock):
     sendData(sock, userId)
     global directory
     sendData(sock, directory)
-    fileName = raw_input("Which file would you like to rename: ")
+    fileName = takeInput("Which file would you like to rename: ")
     fileName = cryp_file.cry_fdata(fileName, userGroup).encode('hex')
     sendData(sock, fileName)
 
@@ -267,6 +268,16 @@ def deleteFile(sock):
             print(result)
     else:
         print(result)
+
+def takeInput(text):
+    cont = False
+    result = ""
+    while cont == False:
+        result = raw_input(text)
+        if result != "":
+            cont = True
+    return result
+
 
 def sendData(sock, message) :
     if (isinstance(message, int) or isinstance(message, float)):
@@ -321,7 +332,7 @@ if __name__ == '__main__':
     close = False
     while(close == False):
         print("Welcome to the secure file system (SFS)\nPlease select an option\n1: Login\n2: Create new user\n")
-        sel = raw_input();
+        sel = takeInput("");
         if sel == '1':
             close = login(s)
         elif sel == '2':
@@ -351,7 +362,7 @@ if __name__ == '__main__':
               "8: Delete a file\n"
               "9: Exit"
               .format(userId, userName, userGroup, directory))
-        sel = raw_input();
+        sel = takeInput("");
 
         if sel == '1':
             uploadPrivateFile(s)
